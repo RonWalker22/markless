@@ -146,46 +146,34 @@ function bootstrap(context) {
 			};
 		})()]],
 		["quote", ["blockquote", (() => {
-			const quoteDecoration = vscode.window.createTextEditorDecorationType({
-				textDecoration: "none; filter: drop-shadow(0px 0px 40px);",
-			});
-			const quoteBarDecoration = vscode.window.createTextEditorDecorationType({
-				color: "transparent",
-				before: {
-					contentText: "",
-					textDecoration: "none; position: absolute; background: #ffaa00; top: -0.2em; bottom: -0.2em; width: 3px; border-radius: 99px; mix-blend-mode: luminosity;",
-				}
+			const newDecoration = vscode.window.createTextEditorDecorationType({
+				// textDecoration: "none;",
+				color: "#000"
 			});
 			return (start, end) => {
-				addDecoration(quoteDecoration, start, end);
-				const text = state.text.slice(start, end);
-				const regEx = /^ {0,3}>/mg;
-				let match;
-				while ((match = regEx.exec(text))) {
-					// console.log("Quote: ", match);
-					addDecoration(quoteBarDecoration, start + match.index + match[0].length - 1, start + match.index + match[0].length);
-				}
+				addDecoration(newDecoration, start, end);
+				// const text = state.text.slice(start, end);
+				// const regEx = /^ {0,3}>/mg;
+				// let match;
+				// while ((match = regEx.exec(text))) {
+				// 	// console.log("Quote: ", match);
+				// 	addDecoration(quoteDecoration, start + match.index + match[0].length - 1, start + match.index + match[0].length);
+				// }
 			};
 		})()]],
 		["inlineCode", ["inlineCode", (() => {
 			const codeDecoration = vscode.window.createTextEditorDecorationType({
 				// outline: "1px dotted"
-				border: "outset",
-				borderRadius: "5px",
+				border: "rgb(189, 147, 249) 1px solid;",
+				// backgroundColor: "rgb(189, 147, 249);",
+				color: "white",
 			})
 			return (start, end) => {
-				addDecoration(codeDecoration, start, end);
-				addDecoration(transparentDecoration, start, start + 1);
-				addDecoration(transparentDecoration, end - 1, end);
+				// addDecoration(codeDecoration, start + 1, end - 1);
+				// addDecoration(transparentDecoration, start, start + 1);
+				// addDecoration(transparentDecoration, end - 1, end);
 			};
 		})()]],
-		["link", ["link", (start, end) => {
-			const text = state.text.slice(start, end);
-			const match = /\[(.+)\]\(.+?\)/.exec(text);
-			if (!match) return;
-			addDecoration(hideDecoration, start, start + 1);
-			addDecoration(getUrlDecoration(false), start + match[1].length + 1, end);
-		}]],
 		["link", ["image", (start, end, node) => {
 			const text = state.text.slice(start, end);
 			const match = /!\[(.*)\]\(.+?\)/.exec(text);
