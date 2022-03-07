@@ -98,6 +98,41 @@
 						"description": "Color level lists",
 						"type": "boolean",
 						"default": true
+					},
+					"markless.inlineCode": {
+						"description": "Decorate inline code",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.inlineImage.enabled": {
+						"description": "Enable image preview",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.inlineImage.autoPreview": {
+						"description": "Preview images automatically",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.heading": {
+						"description": "Decorate headings",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.quote": {
+						"description": "Decorate quotes",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.link": {
+						"description": "Decorate link and image urls",
+						"type": "boolean",
+						"default": true
+					},
+					"markless.hoverImage": {
+						"description": "Preview image on hover",
+						"type": "boolean",
+						"default": true
 					}
 				}
 			}

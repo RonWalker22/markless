@@ -134,13 +134,73 @@ function bootstrap(context) {
 
 	// @ts-ignore
 	state.types = new Map([
+		["heading", ["heading", (() => {
+			const getEnlargeDecoration = memoize((size) => vscode.window.createTextEditorDecorationType({
+				color: "#000",
+				textDecoration: `; font-size: ${size}px; position: relative; top: 0.1em;`,
+			}));
+			return (start, end, node) => {
+				// console.log("Heading node", node);
+				addDecoration(getEnlargeDecoration(5 * state.fontSize / (2 + node.depth)), start + node.depth + 1, end);
+				addDecoration(hideDecoration, start, start + node.depth + 1);
+			};
+		})()]],
+		["quote", ["blockquote", (() => {
+			const quoteDecoration = vscode.window.createTextEditorDecorationType({
+				textDecoration: "none; filter: drop-shadow(0px 0px 40px);",
+			});
+			const quoteBarDecoration = vscode.window.createTextEditorDecorationType({
+				color: "transparent",
+				before: {
+					contentText: "",
+					textDecoration: "none; position: absolute; background: #ffaa00; top: -0.2em; bottom: -0.2em; width: 3px; border-radius: 99px; mix-blend-mode: luminosity;",
+				}
+			});
+			return (start, end) => {
+				addDecoration(quoteDecoration, start, end);
+				const text = state.text.slice(start, end);
+				const regEx = /^ {0,3}>/mg;
+				let match;
+				while ((match = regEx.exec(text))) {
+					// console.log("Quote: ", match);
+					addDecoration(quoteBarDecoration, start + match.index + match[0].length - 1, start + match.index + match[0].length);
+				}
+			};
+		})()]],
+		["inlineCode", ["inlineCode", (() => {
+			const codeDecoration = vscode.window.createTextEditorDecorationType({
+				// outline: "1px dotted"
+				border: "outset",
+				borderRadius: "5px",
+			})
+			return (start, end) => {
+				addDecoration(codeDecoration, start, end);
+				addDecoration(transparentDecoration, start, start + 1);
+				addDecoration(transparentDecoration, end - 1, end);
+			};
+		})()]],
+		["link", ["link", (start, end) => {
+			const text = state.text.slice(start, end);
+			const match = /\[(.+)\]\(.+?\)/.exec(text);
+			if (!match) return;
+			addDecoration(hideDecoration, start, start + 1);
+			addDecoration(getUrlDecoration(false), start + match[1].length + 1, end);
+		}]],
+		["link", ["image", (start, end, node) => {
+			const text = state.text.slice(start, end);
+			const match = /!\[(.*)\]\(.+?\)/.exec(text);
+			if (!match) return;
+			addDecoration(hideDecoration, start, start + 2);
+			addDecoration(getUrlDecoration(true), start + match[1].length + 2, end);
+			state.imageList.push([posToRange(start, end), node.url, node.alt || " "]);
+		}]],
 		["list", ["listItem", (() => {
 			const getBulletDecoration = memoize((level) => {
 				const listBulletColors = [
 				 "green",
- 				 "#ffb86c",
-				 "#bd93f9",
-				 "#ff5555"
+ 				 "#bd93f9",
+				 "#ff5555",
+				 "#006ab1",
 				]
 				return vscode.window.createTextEditorDecorationType({
 					color: listBulletColors[level % listBulletColors.length],
