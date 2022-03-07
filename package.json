@@ -1,9 +1,9 @@
 {
-	"name": "markless",
-	"publisher": "tejasvi",
-	"displayName": "Markless",
-	"description": "Inline markdown preview.  Vim mode and WYSIWYG mermaid, latex and image rendering.",
-	"version": "1.0.2",
+	"name": "markdown-list-level-colors",
+	"publisher": "ron walker",
+	"displayName": "markdown-list-level-colors",
+	"description": "fork of Markless",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.56.0"
 	},
@@ -44,7 +44,7 @@
 				{
 					"id": "markless",
 					"icon": "assets/activityBar.svg",
-					"title": ""
+					"title": "rons-md-theme"
 				}
 			]
 		},
@@ -92,80 +92,10 @@
 		},
 		"configuration": [
 			{
-				"title": "Markless",
+				"title": "MarkDown-list-level-colors",
 				"properties": {
-					"markless.emphasis": {
-						"description": "Decorate bold, italics and strikethrough",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.heading": {
-						"description": "Decorate headings",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.horizontalRule": {
-						"description": "Decorate horizontal rule",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.inlineCode": {
-						"description": "Decorate inline code",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.inlineImage.enabled": {
-						"description": "Enable image preview",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.inlineImage.autoPreview": {
-						"description": "Preview images automatically",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.mermaid": {
-						"description": "Render mermaid diagrams",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.latex": {
-						"description": "Render LaTeX",
-						"type": "boolean",
-						"default": true
-					},
 					"markless.list": {
-						"description": "Decorate lists",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.quote": {
-						"description": "Decorate quotes",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.table": {
-						"description": "Render tables",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.html": {
-						"description": "Decorate HTML tags",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.link": {
-						"description": "Decorate link and image urls",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.hoverImage": {
-						"description": "Preview image on hover",
-						"type": "boolean",
-						"default": true
-					},
-					"markless.cursorDisables": {
-						"description": "Disable concealment around the cursor and selection",
+						"description": "Color level lists",
 						"type": "boolean",
 						"default": true
 					}

@@ -134,244 +134,25 @@ function bootstrap(context) {
 
 	// @ts-ignore
 	state.types = new Map([
-		["heading", ["heading", (() => {
-			const getEnlargeDecoration = memoize((size) => vscode.window.createTextEditorDecorationType({
-				textDecoration: `; font-size: ${size}px; position: relative; top: 0.1em;`,
-			}));
-			return (start, end, node) => {
-				// console.log("Heading node", node);
-				addDecoration(getEnlargeDecoration(5 * state.fontSize / (2 + node.depth)), start + node.depth + 1, end);
-				addDecoration(hideDecoration, start, start + node.depth + 1);
-			};
-		})()]],
-		["horizontalRule", ["thematicBreak", (() => {
-			const horizontalRuleDecoration = vscode.window.createTextEditorDecorationType({
-				color: "transparent",
-				textDecoration: "none; display: inline-block; width: 0;",
-				before: {
-					contentText: "",
-					textDecoration: "none; position: absolute; background: #ffaa00; top: 0.49em; bottom: 0.49em; width: 100%; mix-blend-mode: luminosity; border: outset;",
-				}
-			});
-			return (start, end) => {
-				addDecoration(horizontalRuleDecoration, start, end);
-			};
-		})()]],
-		["quote", ["blockquote", (() => {
-			const quoteDecoration = vscode.window.createTextEditorDecorationType({
-				textDecoration: "none; filter: drop-shadow(0px 0px 40px);",
-			});
-			const quoteBarDecoration = vscode.window.createTextEditorDecorationType({
-				color: "transparent",
-				before: {
-					contentText: "",
-					textDecoration: "none; position: absolute; background: #ffaa00; top: -0.2em; bottom: -0.2em; width: 3px; border-radius: 99px; mix-blend-mode: luminosity;",
-				}
-			});
-			return (start, end) => {
-				addDecoration(quoteDecoration, start, end);
-				const text = state.text.slice(start, end);
-				const regEx = /^ {0,3}>/mg;
-				let match;
-				while ((match = regEx.exec(text))) {
-					// console.log("Quote: ", match);
-					addDecoration(quoteBarDecoration, start + match.index + match[0].length - 1, start + match.index + match[0].length);
-				}
-			};
-		})()]],
 		["list", ["listItem", (() => {
 			const getBulletDecoration = memoize((level) => {
-				const listBullets = ["❧", "☯", "♠", "❀", "♚", "☬", "♣", "♥", "🙤", "⚜", "⚛", "⛇", "⚓", "☘", "☔"];
+				const listBulletColors = [
+				 "green",
+ 				 "#ffb86c",
+				 "#bd93f9",
+				 "#ff5555"
+				]
 				return vscode.window.createTextEditorDecorationType({
-					color: "transparent",
-					textDecoration: "none; display: inline-block; width: 0;",
-					after: {
-						contentText: listBullets[level % listBullets.length],
-						fontWeight: "bold"
-					},
+					color: listBulletColors[level % listBulletColors.length],
 				});
 			});
-			const getCheckedDecoration = memoize((checked) => {
-				return vscode.window.createTextEditorDecorationType({
-					color: "transparent",
-					textDecoration: "none; display: inline-block; width: 0;",
-					after: {
-						contentText: checked ? "☑" : "☐",
-						fontWeight: "bold"
-					},
-				});
-			});
-			const getlistRainbowDecoration = (() => {
-				const hueRotationMultiplier = [0, 5, 9, 2, 6, 7];
-				const getNonCyclicDecoration = memoize((level) => vscode.window.createTextEditorDecorationType({
-					textDecoration: (`; filter: hue-rotate(${hueRotationMultiplier[level] * 360 / 12}deg);`),
-				}));
-				return (level) => {
-					level = level % hueRotationMultiplier.length;
-					return getNonCyclicDecoration(level);
-				};
-			})();
 			return (start, _end, node, listLevel) => {
-				// console.log("decorate list", listLevel);
-				if (node.children.length === 0) return;
-				const textPosition = node.children[0].position;
-				const textStart = textPosition.start.offset;
+				const textPosition = node.children.length > 0 ?
+					node.children[0].position : node.position
 				const textEnd = textPosition.end.offset;
-				addDecoration(node.checked == null ? getBulletDecoration(listLevel) : getCheckedDecoration(node.checked), start, textStart - 1);
-				addDecoration(getlistRainbowDecoration(listLevel), textStart, textEnd);
+				addDecoration(getBulletDecoration(listLevel), start, textEnd);
 			};
 		})()]],
-		["latex", ["math", (() => {
-			const getTexDecoration = (() => {
-				const _getTexDecoration = memoize((texString, display, darkMode, fontSize, height) => {
-					const svgUri = svgToUri(texToSvg(texString, display, height));
-					return getSvgDecoration(svgUri, darkMode);
-				});
-				return (texString, display, numLines) => _getTexDecoration(texString, display, state.darkMode, state.fontSize, numLines * state.lineHeight);
-			})();
-			return (start, end) => {
-				const latexText = state.text.slice(start, end);
-				const match = /^(\$+)([^]+)\1/.exec(latexText);
-				if (!match) return;
-				// console.log("math", latexText);
-				const numLines = 1 + (latexText.match(/\n/g)||[]).length;
-				addDecoration(getTexDecoration(match[2], match[1].length > 1, numLines), start, end);
-			};
-		})()]],
-		["latex", ["inlineMath", (start, end) => state.types.get("math")(start, end)]],
-		["emphasis", ["emphasis", (start, end) => {
-			addDecoration(hideDecoration, start, start + 1);
-			addDecoration(hideDecoration, end - 1, end);
-		}]],
-		["emphasis", ["strong", (start, end) => {
-			addDecoration(hideDecoration, start, start + 2);
-			addDecoration(hideDecoration, end - 2, end);
-		}]],
-		["inlineCode", ["inlineCode", (() => {
-			const codeDecoration = vscode.window.createTextEditorDecorationType({
-				// outline: "1px dotted"
-				border: "outset",
-				borderRadius: "5px",
-			})
-			return (start, end) => {
-				addDecoration(codeDecoration, start, end);
-				addDecoration(transparentDecoration, start, start + 1);
-				addDecoration(transparentDecoration, end - 1, end);
-			};
-		})()]],
-		["mermaid", ["code", (() => {
-			const getMermaidDecoration = (() => {
-				const _getTexDecoration = memoize(async (source, darkMode, height, fontFamily) => {
-					await webviewLoaded;
-					const svgString = await requestSvg({ source: source, darkMode: darkMode, fontFamily: fontFamily });
-					const svgNode = cheerio.load(svgString)('svg');
-					const maxWidth = parseFloat(svgNode.css('max-width')) * height / parseFloat(svgNode.attr('height'));
-					const svg = svgNode
-						.css('max-width', `${maxWidth}px`)
-						.attr('height', `${height}px`)
-						.attr("preserveAspectRatio", "xMinYMin meet")
-						.toString()
-					const svgUri = svgToUri(svg);
-					// console.log("SSSSSSSVVVVGGGG:  ")
-					// console.log('%c ', `font-size:400px; background:url(${svgUri}) no-repeat; background-size: contain;`);
-					return getSvgDecoration(svgUri, false); // Using mermaid theme instead
-				});
-				return (source, numLines) => _getTexDecoration(source, state.darkMode, (numLines + 2) * state.lineHeight, state.fontFamily);
-			})();
-			return async (start, end, node) => {
-				if (!(node.lang === "mermaid")) return;
-				const match = state.text.slice(start, end).match(/^(.)(\1{2,}).*?\n([^]+)\n\1{3,}$/);
-				if (!match) return;
-				const source = match[3]
-					, numLines = 1 + (source.match(/\n/g) || []).length;
-				const decoration = await getMermaidDecoration(source, numLines);
-				if (decoration) {
-					addDecoration(decoration, start, end);
-				}
-			};
-		})()]],
-		["link", ["link", (start, end) => {
-			const text = state.text.slice(start, end);
-			const match = /\[(.+)\]\(.+?\)/.exec(text);
-			if (!match) return;
-			addDecoration(hideDecoration, start, start + 1);
-			addDecoration(getUrlDecoration(false), start + match[1].length + 1, end);
-		}]],
-		["html", ["html", (() => {
-			const htmlDecoration = vscode.window.createTextEditorDecorationType({
-				color: "transparent",
-				textDecoration: "none; display: inline-block; width: 0;",
-				before: {
-					contentText: "</>",
-					fontWeight: "bold",
-					textDecoration: "none; font-size: small; vertical-align: middle;",
-					color: "cyan"
-				},
-			});
-			return (start, end) => {
-				const text = state.text.slice(start, end);
-				const match = /(<.+?>).+(<\/.+?>)/.exec(text);
-				if (match) {
-					addDecoration(htmlDecoration, start, start + match[1].length);
-					addDecoration(htmlDecoration, end - match[2].length, end);
-				} else {
-					addDecoration(htmlDecoration, start, end);
-				}
-			}
-		})()]],
-		["link", ["image", (start, end, node) => {
-			const text = state.text.slice(start, end);
-			const match = /!\[(.*)\]\(.+?\)/.exec(text);
-			if (!match) return;
-			addDecoration(hideDecoration, start, start + 2);
-			addDecoration(getUrlDecoration(true), start + match[1].length + 2, end);
-			state.imageList.push([posToRange(start, end), node.url, node.alt || " "]);
-		}]],
-		["emphasis", ["delete", (() => {
-			const strikeDecoration = vscode.window.createTextEditorDecorationType({
-				textDecoration: "line-through"
-			});
-			return (start, end) => {
-				addDecoration(hideDecoration, start, start + 2);
-				addDecoration(hideDecoration, end - 2, end);
-				addDecoration(strikeDecoration, start + 2, end - 2);
-			};
-		})()]],
-		["table", ["table", (() => {
-			const getTableDecoration = memoize((html, darkMode, fontFamily, fontSize, lineHeight) => {
-				const numRows = 1 + (html.match(/<tr>/g) || []).length;
-				const css = `
-				table { border-collapse: collapse; }
-				th { border-bottom : groove; }
-				td { border-bottom : inset; }
-				td, th {padding:${fontSize*0.1}px 0.5em;}
-				/*td,th { height: ${lineHeight*0.9}px;}*/
-				body {
-					font-family:${fontFamily.replace(/(?<!\\)"/g, "'")};
-					font-size: ${fontSize*0.9}px;
-				}
-				`;
-				const temp = html.match(/<tr>[^]+?<\/tr>/g)
-					.map(r => r.replace(/^<tr>\n<t[dh]>/, '').split(/<t[dh]>/)
-						.map(c => c.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "")))
-				const maxLength = temp.reduce((acc, cur) => acc.map((val, idx) => Math.max(val, cur[idx].length)), Array(temp[0].length).fill(0))
-					.reduce((acc, cur)=>acc+cur);
-
-				const tableUri = svgToUri(htmlToSvg(numRows * lineHeight, maxLength * fontSize, html, css));
-				return vscode.window.createTextEditorDecorationType({
-					color: "transparent",
-					textDecoration: "none; display: inline-block; width: 0;",
-					before: {
-						contentIconPath: vscode.Uri.parse(tableUri),
-						textDecoration: `none;${darkMode ? " filter: invert(1)" : ""}`,
-					},
-				});
-			});
-			return (start, end, node) => {
-				const html = nodeToHtml(node);
-				addDecoration(getTableDecoration(html, state.darkMode, state.fontFamily, state.fontSize, state.lineHeight), start, end);
-			};
-		})()]]
 	// @ts-ignore
 	].filter(e=>state.config.get(e[0])).map(e => e[1]));
 
