@@ -134,9 +134,20 @@ function bootstrap(context) {
 
 	// @ts-ignore
 	state.types = new Map([
-		["heading", ["heading", (() => {
+		["headingBlack", ["heading", (() => {
 			const getEnlargeDecoration = memoize((size) => vscode.window.createTextEditorDecorationType({
 				color: "#000",
+				textDecoration: `; font-size: ${size}px; position: relative; top: 0.1em;`,
+			}));
+			return (start, end, node) => {
+				// console.log("Heading node", node);
+				addDecoration(getEnlargeDecoration(5 * state.fontSize / (2 + node.depth)), start + node.depth + 1, end);
+				addDecoration(hideDecoration, start, start + node.depth + 1);
+			};
+		})()]],
+		["headingWhite", ["heading", (() => {
+			const getEnlargeDecoration = memoize((size) => vscode.window.createTextEditorDecorationType({
+				color: "#fff",
 				textDecoration: `; font-size: ${size}px; position: relative; top: 0.1em;`,
 			}));
 			return (start, end, node) => {
